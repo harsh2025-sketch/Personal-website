@@ -21,7 +21,7 @@ const CONTACT_CONFIG = {
     linkedinHandle: 'SGFyc2ggRGlub2RpYQ==',
     
     // Google Apps Script URL (Latest working deployment)
-    scriptUrl: 'aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J5LTV4Y2JhOWhVeDdab1Q0UWFBTDNXX0NKM3pzeDFuOHVPQWhpeDMzaGYxc01LT3RhbDZYMVUwNnRJMmZHR2ItQjNrUS9leGVj' // Latest working URL
+    scriptUrl: 'aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3MUoxTTFzb1puNlpEVF9xbTJ3cDJYYlhxZGFiNjZsS0pHXzhCUnBJSnVXeFlNNFJQM2FVUUJYVXNkZzlXS2tRaEFxZy9leGVj' // Updated deployment URL
 };
 
 /**

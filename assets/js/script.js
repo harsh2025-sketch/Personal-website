@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     lastName: formData.get('lastName'),
                     email: formData.get('email'),
                     phone: formData.get('phone'),
-                    company: formData.get('company'),
-                    inquiryType: formData.get('inquiryType'),
+                    organization: formData.get('organization'),
+                    subject: formData.get('subject'),
                     message: formData.get('message'),
                     newsletter: formData.get('newsletter') === 'on',
                     privacy: formData.get('privacy') === 'on',
@@ -140,8 +140,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     source: 'contact_form'
                 };
                 
+                console.log('Contact form submitted:', contactData);
+                
                 // Validate required fields
-                if (!contactData.firstName || !contactData.email || !contactData.message || !contactData.privacy) {
+                if (!contactData.firstName || !contactData.lastName || !contactData.email || !contactData.subject || !contactData.message || !contactData.privacy) {
                     showNotification('Please fill in all required fields and accept the privacy policy', 'error');
                     return;
                 }
@@ -151,24 +153,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Store contact form data
-                storeContactLocally(contactData);
-                // storeContactToServer(contactData); // Uncomment for server storage
-                // storeContactToFormspree(contactData); // Uncomment for Formspree
-                
-                // Update UI
+                // Update UI - Show sending state
                 const submitBtn = this.querySelector('button[type="submit"]');
-                submitBtn.textContent = 'Message Sent!';
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Sending...';
                 submitBtn.disabled = true;
                 
-                showNotification('Thank you for your message! I\'ll get back to you soon.', 'success');
+                // Store contact form data locally first (immediate backup)
+                storeContactLocally(contactData);
                 
-                // Reset form after 3 seconds
-                setTimeout(() => {
-                    this.reset();
-                    submitBtn.textContent = 'Send Message';
-                    submitBtn.disabled = false;
-                }, 3000);
+                // Send to Google Apps Script (this will handle both emails)
+                storeContactToGoogleSheets(contactData)
+                    .then(() => {
+                        // Success - Reset form after 3 seconds
+                        setTimeout(() => {
+                            this.reset();
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+                        }, 3000);
+                    })
+                    .catch(() => {
+                        // Error - Reset button immediately so user can try again
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    });
             });
         }
     }
@@ -259,7 +267,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const contact = getContactInfo();
         const GOOGLE_SCRIPT_URL = contact.scriptUrl;
         
-        fetch(GOOGLE_SCRIPT_URL, {
+        console.log('Sending contact form to Google Apps Script...');
+        console.log('Script URL:', GOOGLE_SCRIPT_URL);
+        console.log('Data being sent:', contactData);
+        
+        return fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -278,26 +290,29 @@ document.addEventListener('DOMContentLoaded', function() {
             })
         })
         .then(response => {
-            console.log('📡 Response status:', response.status);
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('✅ Contact form stored in Google Sheets:', data);
+            console.log('SUCCESS! Contact form processed:', data);
             if (data.success) {
-                console.log('📧 Email notification should be sent!');
-                showNotification('Message sent! You should receive a confirmation email.', 'success');
+                console.log('Both emails should be sent now!');
+                showNotification('Message sent successfully! Check your email for confirmation.', 'success');
+                return data;
             } else {
-                console.error('❌ Google Apps Script returned error:', data.error);
-                showNotification('Message saved but email notification failed.', 'warning');
+                console.error('Google Apps Script returned error:', data.error);
+                showNotification('Message saved but there was an issue: ' + data.error, 'warning');
+                throw new Error(data.error);
             }
         })
         .catch(error => {
-            console.error('❌ Error storing to Google Sheets:', error);
-            showNotification('Message saved locally. Email notification failed.', 'warning');
-            // Form still works with local storage as fallback
+            console.error('Error storing to Google Sheets:', error);
+            showNotification('Could not send message. Please try again or email directly.', 'error');
+            throw error; // Re-throw to handle in calling function
         });
     }
     
