@@ -1,0 +1,54 @@
+# Ignore sensitive configuration files
+google-apps-script*.js
+*SETUP*.md
+*SUMMARY*.md
+*NOTIFICATIONS*.md
+test-*.html
+update-*.js
+
+# Ignore development and backup files
+dev/
+temp/
+backup/
+*.log
+*.tmp
+
+# Ignore environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Ignore personal notes and documentation
+PERSONAL_NOTES.md
+DEPLOYMENT_NOTES.md
+LOCAL_CONFIG.md
+
+# Ignore OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ignore editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore package managers
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keep only public files
+!assets/
+!pages/
+!index.html
+!README.md
+!LICENSE
